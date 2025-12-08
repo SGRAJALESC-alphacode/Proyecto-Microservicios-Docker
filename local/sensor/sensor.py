@@ -63,7 +63,7 @@ def simulate_sensor():
             cursor.execute(query, (city_info['name'], temp, hum))
             conn.commit()
             
-            print(f"[{datetime.now()}] 📡 Datos REALES enviados desde {city_info['name']}: {temp}°C", flush=True)
+            print(f"[{datetime.now()}] Datos REALES enviados desde {city_info['name']}: {temp}°C", flush=True)
             
             cursor.close()
             conn.close()

@@ -18,7 +18,7 @@ INTERVAL = int(os.environ.get('SYNC_INTERVAL', 600))
 
 def perform_backup():
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] 💾 Iniciando respaldo...", flush=True)
+    print(f"[{timestamp}] Iniciando respaldo...", flush=True)
     
     conn = None
     try:
