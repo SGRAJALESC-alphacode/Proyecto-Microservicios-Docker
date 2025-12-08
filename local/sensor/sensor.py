@@ -36,7 +36,7 @@ def get_real_weather(lat, lon):
             "wind": data['current_weather']['windspeed']
         }
     except Exception as e:
-        print(f"⚠️ Error consultando API: {e}")
+        print(f"Error consultando API: {e}")
         # Valor de respaldo por si falla internet
         return {"temp": 20.0, "wind": 5.0}
 
@@ -69,7 +69,7 @@ def simulate_sensor():
             conn.close()
 
         except Exception as e:
-            print(f"❌ Error crítico: {e}", flush=True)
+            print(f"Error crítico: {e}", flush=True)
 
         # Esperar 15 segundos exactos
         time.sleep(15)

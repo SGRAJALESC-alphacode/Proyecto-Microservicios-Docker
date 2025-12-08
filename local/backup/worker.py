@@ -46,12 +46,12 @@ def perform_backup():
         with open(filename, 'w') as f:
             json.dump(rows, f, indent=4)
             
-        print(f"✅ Respaldo exitoso: {len(rows)} registros guardados en {filename}", flush=True)
+        print(f"Respaldo exitoso: {len(rows)} registros guardados en {filename}", flush=True)
         
         cursor.close()
         
     except Exception as e:
-        print(f"❌ Error en el respaldo: {e}", flush=True)
+        print(f"Error en el respaldo: {e}", flush=True)
     finally:
         if conn and conn.is_connected():
             conn.close()
