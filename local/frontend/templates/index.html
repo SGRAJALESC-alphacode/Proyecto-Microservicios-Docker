@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Distribuido UAM</title>
+    <style>
+        :root { --primary: #0d6efd; --bg: #f8f9fa; --card-bg: #ffffff; --text: #212529; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { margin-bottom: 30px; color: #333; }
+        
+        /* Contenedores */
+        .dashboard { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 900px; }
+        .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 25px; transition: transform 0.2s; border: 1px solid #e9ecef; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 12px rgba(0,0,0,0.1); }
+        .card-header h2 { margin-top: 0; font-size: 1.25rem; color: var(--primary); }
+        .card-desc { color: #6c757d; font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* Botones */
+        button { background-color: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.3s; width: 100%; }
+        button:hover { background-color: #0b5ed7; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* Area de Resultados */
+        .result-area { margin-top: 20px; min-height: 60px; }
+        
+        /* Estilos para TABLA (Base de Datos) */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #e9ecef; color: #495057; font-weight: 600; }
+        tr:hover { background-color: #f1f3f5; }
+
+        /* Estilos para CLIMA (Tarjeta) */
+        .weather-widget { display: flex; align-items: center; justify-content: space-around; background: #e7f1ff; padding: 15px; border-radius: 10px; color: #084298; }
+        .weather-item { text-align: center; }
+        .weather-value { font-size: 1.5rem; font-weight: bold; }
+        .weather-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Utilidades */
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; }
+        .loading { color: #6c757d; font-style: italic; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>Panel de Control - Microservicios Docker</h1>
+
+    <div class="dashboard">
+        <div class="card">
+            <div class="card-header">
+                <h2>☁️ Datos Externos (API Clima)</h2>
+            </div>
+            <p class="card-desc">Consulta concurrente a Open-Meteo para obtener datos en tiempo real de Manizales.</p>
+            <button onclick="fetchExternalData()" id="btn1">Consultar API Pública</button>
+            <div id="result1" class="result-area"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>🛢️ Datos en la Nube (MySQL Remoto)</h2>
+            </div>
+            <p class="card-desc">Conexión segura a través de Nginx Proxy (TCP) hacia la Máquina Virtual Linux.</p>
+            <button onclick="fetchCloudData()" id="btn2">Consultar Base de Datos</button>
+            <div id="result2" class="result-area"></div>
+        </div>
+    </div>
+
+    <script>
+        // FUNCIÓN 1: TRAER CLIMA
+        async function fetchExternalData() {
+            const btn = document.getElementById('btn1');
+            const display = document.getElementById('result1');
+            
+            btn.disabled = true;
+            btn.innerText = "Cargando...";
+            display.innerHTML = '<div class="loading">Consultando API de forma asíncrona...</div>';
+
+            try {
+                const response = await fetch('/get-external-data');
+                const data = await response.json();
+
+                if(data.error) throw new Error(data.error);
+
+                // Renderizado bonito tipo Widget
+                display.innerHTML = `
+                    <div class="weather-widget">
+                        <div class="weather-item">
+                            <div class="weather-value">${data.location}</div>
+                            <div class="weather-label">Ubicación</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="weather-value">${data.temperature}°C</div>
+                            <div class="weather-label">Temperatura</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="weather-value">${data.windspeed} km/h</div>
+                            <div class="weather-label">Viento</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                display.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Consultar API Pública";
+            }
+        }
+
+        // FUNCIÓN 2: TRAER BASE DE DATOS
+        async function fetchCloudData() {
+            const btn = document.getElementById('btn2');
+            const display = document.getElementById('result2');
+
+            btn.disabled = true;
+            btn.innerText = "Conectando a VM...";
+            display.innerHTML = '<div class="loading">Recuperando registros desde la Nube...</div>';
+
+            try {
+                const response = await fetch('/get-cloud-data');
+                const data = await response.json();
+
+                if(data.error) throw new Error(data.error);
+
+                // Si no hay datos
+                if (data.length === 0) {
+                    display.innerHTML = '<div class="error">No hay registros en la base de datos.</div>';
+                    return;
+                }
+
+                // Construcción dinámica de la Tabla HTML
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ciudad</th>
+                                <th>Temp (°C)</th>
+                                <th>Humedad (%)</th>
+                                <th>Fecha Registro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach(row => {
+                    // Formateamos la fecha para que se vea amigable
+                    const fecha = new Date(row.fecha_registro).toLocaleString();
+                    tableHtml += `
+                        <tr>
+                            <td>${row.id}</td>
+                            <td><strong>${row.ciudad}</strong></td>
+                            <td>${row.temperature || row.temperatura}</td>
+                            <td>${row.humedad}</td>
+                            <td>${fecha}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += '</tbody></table>';
+                display.innerHTML = tableHtml;
+
+            } catch (error) {
+                display.innerHTML = `<div class="error">Error de Conexión: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Consultar Base de Datos";
+            }
+        }
+
+        // --- AUTOMATIZACIÓN SINCRONIZADA ---
+        document.addEventListener('DOMContentLoaded', (event) => {
+            console.log("Sincronizando paneles...");
+            
+            // 1. Carga inicial inmediata
+            fetchExternalData();
+            fetchCloudData();
+
+            // 2. Bucle infinito cada 15 segundos
+            setInterval(() => {
+                console.log("Actualizando ambos paneles...");
+                
+                // DISPARAMOS AMBAS FUNCIONES A LA VEZ
+                fetchExternalData(); // Actualiza panel API (Arriba)
+                fetchCloudData();    // Actualiza panel BD (Abajo)
+
+                // Efecto visual en el botón de abajo
+                const btn = document.getElementById('btn2');
+                btn.innerText = "Sincronizando...";
+                setTimeout(() => { btn.innerText = "Consultar Base de Datos"; }, 1000);
+                
+            }, 15000); // 15000 ms = 15 segundos
+        });
+    </script>
+</body>
+</html>
