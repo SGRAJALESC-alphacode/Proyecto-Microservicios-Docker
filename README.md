@@ -64,7 +64,9 @@ La tarea de consultar una API externa (Open-Meteo) es una operación **I/O-Bound
 2.  Edite el archivo `docker-compose.yml` y reemplace la variable `CLOUD_DB_HOST` con la IP de su servidor Linux.
 3.  Despliegue los microservicios:
     ```bash
-    docker-compose up -d --build
+    docker-compose up -d --build #levantar docker sin logs por consola
+   
+    docker-compose up --build #levantar docker usando logs en vivo
     ```
 4.  Acceda al panel de control en: `http://localhost:5000`
 
