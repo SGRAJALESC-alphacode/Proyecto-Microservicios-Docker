@@ -1,0 +1,15 @@
+# Ignorar archivos compilados de Python
+__pycache__/
+*.pyc
+
+# Ignorar carpetas de entornos virtuales
+venv/
+env/
+
+# Ignorar los backups generados (Son datos, no código)
+local/datos-backup/*.json
+!local/datos-backup/.gitkeep
+
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db

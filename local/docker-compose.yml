@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # 1. Frontend (Tu página web)
+  frontend-app:
+    build: ./frontend
+    container_name: frontend-app
+    ports:
+      - "5000:5000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    environment:
+      - CLOUD_DB_HOST=192.168.1.59   # <--- TU IP DE LINUX
+      - CLOUD_DB_PORT=33060
+      - CLOUD_DB_USER=user_project
+      - CLOUD_DB_PASSWORD=secure_password
+      - CLOUD_DB_NAME=sensores_db
+    networks:
+      - local-net
+
+  # 2. Backup Worker (Tu respaldo automático)
+  backup-worker:
+    build: ./backup
+    container_name: backup-worker
+    volumes:
+      - ./datos-backup:/backups
+    environment:
+      - CLOUD_DB_HOST=192.168.1.59
+      - CLOUD_DB_PORT=33060
+      - CLOUD_DB_USER=user_project
+      - CLOUD_DB_PASSWORD=secure_password
+      - CLOUD_DB_NAME=sensores_db
+      - SYNC_INTERVAL=60            # Respaldo cada 60 seg (1 min) para pruebas
+    networks:
+      - local-net
+
+  # 3. Sensor Simulator (ESTE ES EL QUE TE FALTABA)
+  sensor-simulator:
+    build: ./sensor                 # Busca la carpeta "sensor" que creaste
+    container_name: sensor-simulator
+    environment:
+      - CLOUD_DB_HOST=192.168.1.59  # <--- TU IP DE LINUX
+      - CLOUD_DB_PORT=33060
+      - CLOUD_DB_USER=user_project
+      - CLOUD_DB_PASSWORD=secure_password
+      - CLOUD_DB_NAME=sensores_db   # <--- Confirma que dice "sensores_db"
+    networks:
+      - local-net
+
+networks:
+  local-net:
+    driver: bridge
