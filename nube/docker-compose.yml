@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  db-master:
+    image: mysql:8.0
+    container_name: db-master
+    command: --default-time-zone="-05:00"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sensores_db
+      MYSQL_USER: user_project
+      MYSQL_PASSWORD: secure_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - backend-net
+
+  # Nginx como Proxy TCP
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx-proxy
+    volumes:
+      - ./nginx-conf/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "33060:3306"
+    networks:
+      - backend-net
+    depends_on:
+      - db-master
+
+volumes:
+  mysql_data:
+
+networks:
+  backend-net:
+    driver: bridge
