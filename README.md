@@ -75,8 +75,13 @@ La tarea de consultar una API externa (Open-Meteo) es una operación **I/O-Bound
 ### Arquitectura Tolerante a Fallos
 Se realizaron pruebas de caos eliminando los contenedores de la nube. El sistema demostró resiliencia: el Frontend continuó operando (mostrando datos de la API externa) y manejó la desconexión de la BD de forma controlada.
 
+<img width="928" height="293" alt="image" src="https://github.com/user-attachments/assets/2bd2b105-8803-4f85-b8bc-eaf67257a769" />
+
 ### Persistencia de Datos
 Se verificó que tras destruir los contenedores de la nube, los datos históricos se mantuvieron intactos gracias a la correcta configuración de los `Docker Volumes`.
+
+<img width="601" height="557" alt="image" src="https://github.com/user-attachments/assets/e6dc0d82-ae46-412a-8061-436e138f846a" />
+
 
 ---
 
